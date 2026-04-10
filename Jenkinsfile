@@ -16,31 +16,39 @@ pipeline {
 
     stages {
         stage("Checkout") {
-            checkout scm
-            echo "Code checked out from GitHub"
+            steps {
+                checkout scm
+                echo "Code checked out from GitHub"
+            }
         }
 
         stage("Build Docker Images") {
-            sh "docker compose -p ${PROJECT_NAME} build"
-            echo "Docker images built"
+            steps {
+                sh "docker compose -p ${PROJECT_NAME} build"
+                echo "Docker images built"
+            }
         }
 
         stage("Run Training") {
-            echo "Starting model training..."
-            sh "docker compose -p ${PROJECT_NAME} run --rm trainer"
-            echo "Training complete — model.pkl saved to models/"
+            steps {
+                echo "Starting model training..."
+                sh "docker compose -p ${PROJECT_NAME} run --rm trainer"
+                echo "Training complete — model.pkl saved to models/"
+            }
         }
 
         stage("Deploy All Services") {
-            sh "docker compose -p ${PROJECT_NAME} up -d"
-            sh "sleep 20"
-            sh "docker compose -p ${PROJECT_NAME} ps"
-            echo "All services deployed."
-            echo "UI:         http://localhost"
-            echo "API:        http://localhost/predict-energy"
-            echo "MLflow:     http://localhost:5000"
-            echo "Grafana:    http://localhost:3000"
-            echo "Prometheus: http://localhost:9090"
+            steps {
+                sh "docker compose -p ${PROJECT_NAME} up -d"
+                sh "sleep 20"
+                sh "docker compose -p ${PROJECT_NAME} ps"
+                echo "All services deployed."
+                echo "UI:         http://localhost"
+                echo "API:        http://localhost/predict-energy"
+                echo "MLflow:     http://localhost:5000"
+                echo "Grafana:    http://localhost:3000"
+                echo "Prometheus: http://localhost:9090"
+            }
         }
     }
 
