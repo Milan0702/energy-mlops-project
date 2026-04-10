@@ -1,4 +1,4 @@
-# what it does: Load processed data, train LinearRegression model, log metrics to MLflow, save model
+# what it does: Load processed data, train RandomForest model, log metrics to MLflow, save model
 # input: data/processed/features.csv
 # output: models/model.pkl
 
@@ -8,7 +8,7 @@ import numpy as np
 import json
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import mlflow
@@ -29,7 +29,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 
 pipeline = Pipeline([
     ("scaler", StandardScaler()),
-    ("model", LinearRegression())
+    ("model", RandomForestRegressor(n_estimators=100, max_depth=10, random_state=42, n_jobs=-1))
 ])
 
 pipeline.fit(X_train, y_train)
@@ -52,7 +52,9 @@ print(f"Accuracy (within 10%): {accuracy:.2f}%")
 mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
 mlflow.set_experiment(EXPERIMENT_NAME)
 with mlflow.start_run():
-    mlflow.log_param("model_type", "LinearRegression")
+    mlflow.log_param("model_type", "RandomForestRegressor")
+    mlflow.log_param("n_estimators", 100)
+    mlflow.log_param("max_depth", 10)
     mlflow.log_param("features", "hour_of_day,day_of_week,is_weekend,is_peak_hour")
     mlflow.log_param("train_size", 0.8)
     mlflow.log_metric("rmse", rmse)
