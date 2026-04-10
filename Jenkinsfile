@@ -27,8 +27,8 @@ pipeline {
         stage("Start MLflow") {
             steps {
                 bat "docker compose -p %PROJECT_NAME% up -d mlflow"
-                echo "MLflow started, waiting 10 seconds..."
-                bat "timeout /t 10 /nobreak > nul"
+                echo "MLflow started, waiting 15 seconds..."
+                powershell "Start-Sleep -Seconds 15"
             }
         }
 
@@ -50,7 +50,7 @@ pipeline {
         stage("Deploy All Services") {
             steps {
                 bat "docker compose -p %PROJECT_NAME% up -d"
-                bat "timeout /t 20 /nobreak > nul"
+                powershell "Start-Sleep -Seconds 20"
                 bat "docker compose -p %PROJECT_NAME% ps"
                 echo "All services deployed."
                 echo "UI:         http://localhost"
