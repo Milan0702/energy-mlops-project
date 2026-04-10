@@ -1,0 +1,13 @@
+# Dockerfile.trainer
+# Purpose: Runs src/train.py once and exits. Not a long-running service.
+# Notes:
+# - data/ and models/ are mounted as volumes at runtime — NOT copied into image
+# - This container starts, runs train.py, saves model.pkl to the shared volume, then exits
+# - No torch — requirements.txt uses only sklearn, mlflow, pandas, joblib
+
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY src/ ./src/
+CMD ["python", "src/train.py"]

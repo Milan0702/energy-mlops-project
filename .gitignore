@@ -1,0 +1,18 @@
+# Dataset (too large to commit)
+data/raw/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# Model artifacts
+models/model.pkl
+
+# MLflow runs
+mlruns/
+
+# OS
+.DS_Store
+Thumbs.db

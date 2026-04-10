@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Energy Prediction System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0e14;
+            --card-bg: #151b24;
+            --card-border: rgba(56, 189, 248, 0.15);
+            --primary: #38bdf8;
+            --secondary: #fbbf24;
+            --error: #f87171;
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --input-bg: #1e293b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--card-border);
+            padding: 16px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--secondary);
+        }
+
+        .status-dot.ready {
+            background: var(--primary);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 24px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--text);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--input-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 4px;
+            color: var(--text);
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .badges-row {
+            display: flex;
+            gap: 24px;
+            margin: 16px 0;
+        }
+
+        .badge-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            background: #2a2f2d;
+            color: var(--text-muted);
+        }
+
+        .badge.weekend.peak {
+            background: var(--secondary);
+            color: var(--bg);
+        }
+
+        .badge.weekend:not(.peak) {
+            background: var(--primary);
+            color: var(--bg);
+        }
+
+        .predict-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: var(--bg);
+            border: none;
+            border-radius: 4px;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .predict-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .predict-btn:hover:not(:disabled) {
+            opacity: 0.9;
+        }
+
+        .result-area {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0, 230, 118, 0.05);
+            border-radius: 8px;
+            text-align: center;
+            display: none;
+        }
+
+        .result-area.show {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .result-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 48px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .result-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        .result-time {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            margin-top: 4px;
+        }
+
+        .error-area {
+            margin-top: 16px;
+            padding: 12px;
+            background: rgba(255, 82, 82, 0.1);
+            border-radius: 4px;
+            color: var(--error);
+            font-size: 13px;
+            display: none;
+        }
+
+        .error-area.show {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-box {
+            background: rgba(0, 230, 118, 0.05);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 32px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .stat-box.status .stat-value {
+            color: var(--error);
+        }
+
+        .stat-box.status .stat-value.ready {
+            color: var(--primary);
+        }
+
+        .links-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .link-btn {
+            display: block;
+            padding: 12px;
+            background: transparent;
+            border: 1px solid var(--card-border);
+            border-radius: 4px;
+            color: var(--text);
+            text-decoration: none;
+            font-size: 14px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .link-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .table-card {
+            margin-top: 24px;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .refresh-note {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #1a1f1d;
+            color: var(--primary);
+            padding: 12px;
+            text-align: left;
+            font-weight: 500;
+            font-size: 13px;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--card-border);
+            font-size: 13px;
+            text-align: center;
+        }
+
+        tr:nth-child(even) {
+            background: #1a1f1d;
+        }
+
+        tr:hover {
+            background: rgba(0, 230, 118, 0.05);
+        }
+
+        .pred-cell {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .time-cell {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .loading, .empty {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">⚡ Energy Prediction System</div>
+        <div class="status-pill">
+            <div class="status-dot" id="statusDot"></div>
+            <span id="statusText">Loading...</span>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="main-grid">
+            <div class="card">
+                <div class="card-title">Make a Prediction</div>
+                
+                <div class="form-group">
+                    <label>Hour of Day</label>
+                    <input type="number" id="hourInput" min="0" max="23" placeholder="0–23">
+                </div>
+
+                <div class="form-group">
+                    <label>Day of Week</label>
+                    <select id="daySelect">
+                        <option value="0">0 – Monday</option>
+                        <option value="1">1 – Tuesday</option>
+                        <option value="2">2 – Wednesday</option>
+                        <option value="3">3 – Thursday</option>
+                        <option value="4">4 – Friday</option>
+                        <option value="5">5 – Saturday</option>
+                        <option value="6">6 – Sunday</option>
+                    </select>
+                </div>
+
+                <div class="badges-row">
+                    <div class="badge-item">
+                        <span>Weekend:</span>
+                        <span class="badge" id="weekendBadge">Weekday</span>
+                    </div>
+                    <div class="badge-item">
+                        <span>Peak Hour:</span>
+                        <span class="badge" id="peakBadge">Off-Peak</span>
+                    </div>
+                </div>
+
+                <button class="predict-btn" id="predictBtn">Predict</button>
+
+                <div class="result-area" id="resultArea">
+                    <div class="result-value" id="resultValue">0.00 kW</div>
+                    <div class="result-label">Predicted energy consumption</div>
+                    <div class="result-time" id="resultTime"></div>
+                </div>
+
+                <div class="error-area" id="errorArea"></div>
+            </div>
+
+            <div>
+                <div class="card">
+                    <div class="card-title">System Status</div>
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-value" id="totalPredictions">0</div>
+                            <div class="stat-label">Total Predictions</div>
+                        </div>
+                        <div class="stat-box status">
+                            <div class="stat-value" id="modelStatus">Not Ready</div>
+                            <div class="stat-label">Model Status</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 24px;">
+                    <div class="card-title">Tools</div>
+                    <div class="links-grid">
+                        <a href="http://localhost:5000" target="_blank" class="link-btn">📊 MLflow UI</a>
+                        <a href="http://localhost:3000" target="_blank" class="link-btn">📈 Grafana</a>
+                        <a href="http://localhost:9090" target="_blank" class="link-btn">🔭 Prometheus</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card table-card">
+            <div class="table-header">
+                <div class="card-title" style="margin-bottom: 0;">Recent Predictions</div>
+                <div class="refresh-note">Auto-refreshes every 10s</div>
+            </div>
+            <div class="table-container">
+                <table id="predictionsTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Time</th>
+                            <th>Hour</th>
+                            <th>Day</th>
+                            <th>Weekend</th>
+                            <th>Peak</th>
+                            <th>Prediction (kW)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="predictionsBody">
+                        <tr><td colspan="7" class="loading">Loading predictions...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const hourInput = document.getElementById('hourInput');
+        const daySelect = document.getElementById('daySelect');
+        const weekendBadge = document.getElementById('weekendBadge');
+        const peakBadge = document.getElementById('peakBadge');
+        const predictBtn = document.getElementById('predictBtn');
+        const resultArea = document.getElementById('resultArea');
+        const resultValue = document.getElementById('resultValue');
+        const resultTime = document.getElementById('resultTime');
+        const errorArea = document.getElementById('errorArea');
+        const totalPredictions = document.getElementById('totalPredictions');
+        const modelStatus = document.getElementById('modelStatus');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const predictionsBody = document.getElementById('predictionsBody');
+
+        function computeIsWeekend(day) {
+            return day >= 5;
+        }
+
+        function computeIsPeakHour(hour) {
+            return [7, 8, 9, 17, 18, 19, 20].includes(hour);
+        }
+
+        function updateBadges() {
+            const day = parseInt(daySelect.value) || 0;
+            const hour = parseInt(hourInput.value) || 0;
+            
+            const isWeekend = computeIsWeekend(day);
+            const isPeak = computeIsPeakHour(hour);
+            
+            weekendBadge.textContent = isWeekend ? 'Weekend' : 'Weekday';
+            peakBadge.textContent = isPeak ? 'Peak' : 'Off-Peak';
+            
+            weekendBadge.className = 'badge' + (isWeekend ? ' weekend peak' : ' weekend');
+            peakBadge.className = 'badge' + (isPeak ? ' weekend peak' : ' weekend');
+        }
+
+        hourInput.addEventListener('input', updateBadges);
+        daySelect.addEventListener('change', updateBadges);
+
+        async function fetchStats() {
+            try {
+                const res = await fetch('/stats');
+                const data = await res.json();
+                totalPredictions.textContent = data.total_predictions;
+                
+                if (data.model_loaded) {
+                    modelStatus.textContent = 'Loaded ✓';
+                    modelStatus.classList.add('ready');
+                    statusDot.classList.add('ready');
+                    statusText.textContent = 'Model Ready';
+                } else {
+                    modelStatus.textContent = 'Not Ready ✗';
+                    modelStatus.classList.remove('ready');
+                    statusDot.classList.remove('ready');
+                    statusText.textContent = 'Loading...';
+                }
+            } catch (e) {
+                console.error('Stats fetch error:', e);
+            }
+        }
+
+        async function fetchPredictions() {
+            try {
+                const res = await fetch('/predictions');
+                const data = await res.json();
+                const preds = data.predictions;
+                
+                if (!preds || preds.length === 0) {
+                    predictionsBody.innerHTML = '<tr><td colspan="7" class="empty">No predictions yet. Make your first prediction above!</td></tr>';
+                    return;
+                }
+                
+                const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                predictionsBody.innerHTML = preds.map((p, i) => {
+                    const ts = new Date(p.timestamp);
+                    const time = ts.toTimeString().split(' ')[0];
+                    return `
+                        <tr>
+                            <td>${i + 1}</td>
+                            <td class="time-cell">${time}</td>
+                            <td>${p.hour_of_day}</td>
+                            <td>${dayNames[p.day_of_week]}</td>
+                            <td>${p.is_weekend ? 'Yes' : 'No'}</td>
+                            <td>${p.is_peak_hour ? 'Yes' : 'No'}</td>
+                            <td class="pred-cell">${p.prediction.toFixed(2)}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (e) {
+                console.error('Predictions fetch error:', e);
+                predictionsBody.innerHTML = '<tr><td colspan="7" class="empty">Failed to load predictions</td></tr>';
+            }
+        }
+
+        predictBtn.addEventListener('click', async () => {
+            const hour = parseInt(hourInput.value);
+            const day = parseInt(daySelect.value);
+            
+            if (isNaN(hour) || hour < 0 || hour > 23) {
+                showError('Please enter a valid hour (0-23)');
+                return;
+            }
+            
+            predictBtn.disabled = true;
+            predictBtn.textContent = 'Predicting...';
+            errorArea.classList.remove('show');
+            
+            try {
+                const res = await fetch('/predict-energy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ hour_of_day: hour, day_of_week: day })
+                });
+                
+                if (res.status === 503) {
+                    showError('Model is still loading. Try again in a moment.');
+                    return;
+                }
+                
+                if (!res.ok) {
+                    showError('Request failed. Check that the API is running.');
+                    return;
+                }
+                
+                const data = await res.json();
+                resultValue.textContent = data.predicted_energy_consumption.toFixed(2) + ' kW';
+                resultTime.textContent = 'Logged at ' + data.timestamp;
+                resultArea.classList.add('show');
+                fetchPredictions();
+            } catch (e) {
+                showError('Request failed. Check that the API is running.');
+            } finally {
+                predictBtn.disabled = false;
+                predictBtn.textContent = 'Predict';
+            }
+        });
+
+        function showError(msg) {
+            errorArea.textContent = msg;
+            errorArea.classList.add('show');
+            setTimeout(() => errorArea.classList.remove('show'), 5000);
+        }
+
+        fetchStats();
+        fetchPredictions();
+        setInterval(fetchStats, 10000);
+        setInterval(fetchPredictions, 10000);
+    </script>
+</body>
+</html>
