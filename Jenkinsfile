@@ -5,6 +5,8 @@
 // - Workspace is the project root
 
 pipeline {
+    agent any
+    
     options {
         timestamps()
         timeout(time: 30, unit: 'MINUTES')
