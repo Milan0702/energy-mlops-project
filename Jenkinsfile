@@ -26,7 +26,7 @@ pipeline {
 
         stage("Build Docker Images") {
             steps {
-                sh "docker compose -p ${PROJECT_NAME} build"
+                bat "docker compose -p %PROJECT_NAME% build"
                 echo "Docker images built"
             }
         }
@@ -34,16 +34,16 @@ pipeline {
         stage("Run Training") {
             steps {
                 echo "Starting model training..."
-                sh "docker compose -p ${PROJECT_NAME} run --rm trainer"
+                bat "docker compose -p %PROJECT_NAME% run --rm trainer"
                 echo "Training complete — model.pkl saved to models/"
             }
         }
 
         stage("Deploy All Services") {
             steps {
-                sh "docker compose -p ${PROJECT_NAME} up -d"
-                sh "sleep 20"
-                sh "docker compose -p ${PROJECT_NAME} ps"
+                bat "docker compose -p %PROJECT_NAME% up -d"
+                bat "timeout /t 20 /nobreak > nul"
+                bat "docker compose -p %PROJECT_NAME% ps"
                 echo "All services deployed."
                 echo "UI:         http://localhost"
                 echo "API:        http://localhost/predict-energy"
