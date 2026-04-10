@@ -24,6 +24,14 @@ pipeline {
             }
         }
 
+        stage("Start MLflow") {
+            steps {
+                bat "docker compose -p %PROJECT_NAME% up -d mlflow"
+                echo "MLflow started, waiting 10 seconds..."
+                bat "timeout /t 10 /nobreak > nul"
+            }
+        }
+
         stage("Build Docker Images") {
             steps {
                 bat "docker compose -p %PROJECT_NAME% build"
