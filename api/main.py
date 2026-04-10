@@ -1,5 +1,4 @@
 import os
-import json
 import logging
 from datetime import datetime
 
@@ -59,17 +58,9 @@ def load_model():
         logger.warning("model.pkl not found — API will return 503 until model is ready")
         return None
 
-def load_metrics():
-    try:
-        with open("models/metrics.json", "r") as f:
-            return json.load(f)
-    except FileNotFoundError:
-        return None
-
 @app.on_event("startup")
 async def startup():
     app.state.model = load_model()
-    app.state.metrics = load_metrics()
     metadata.create_all(engine)
     logger.info("API startup complete")
 
@@ -134,23 +125,7 @@ async def get_stats():
     with engine.connect() as conn:
         result = conn.execute(text("SELECT COUNT(*) FROM predictions"))
         count = result.scalar()
-    
-    metrics = getattr(app.state, "metrics", None)
-    model_info = {
-        "model_loaded": app.state.model is not None,
-        "accuracy": metrics.get("accuracy_percent") if metrics else None,
-        "r2": metrics.get("r2") if metrics else None,
-        "rmse": metrics.get("rmse") if metrics else None,
-        "mae": metrics.get("mae") if metrics else None
-    }
-    return {"total_predictions": count, "model": model_info}
-
-@app.get("/model-metrics")
-async def get_model_metrics():
-    metrics = getattr(app.state, "metrics", None)
-    if metrics is None:
-        return {"error": "Metrics not available"}
-    return metrics
+    return {"total_predictions": count, "model_loaded": app.state.model is not None}
 
 @app.get("/health")
 async def health():
@@ -160,8 +135,7 @@ async def health():
 async def reload_model():
     try:
         app.state.model = load_model()
-        app.state.metrics = load_metrics()
-        return {"status": "reloaded", "metrics": app.state.metrics}
+        return {"status": "reloaded"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
