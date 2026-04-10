@@ -1,9 +1,8 @@
-# Jenkinsfile
-# Prerequisites:
-# - Jenkins installed locally on the developer's PC (not in Docker)
-# - Jenkins user has Docker and Docker Compose on PATH
-# - Pipeline connected to a GitHub repository
-# - Workspace is the project root
+// Prerequisites:
+// - Jenkins installed locally on the developer's PC (not in Docker)
+// - Jenkins user has Docker and Docker Compose on PATH
+// - Pipeline connected to a GitHub repository
+// - Workspace is the project root
 
 pipeline {
     options {
