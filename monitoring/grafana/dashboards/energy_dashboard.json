@@ -251,7 +251,7 @@
   "timepicker": {},
   "timezone": "",
   "title": "Energy Prediction API",
-  "uid": "energy-api-dash",
+  "uid": "energy-dash",
   "version": 1,
   "weekStart": ""
 }
